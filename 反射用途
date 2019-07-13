@@ -1,0 +1,51 @@
+反射的用途：
+
+获取类名
+    1.设置类名String path = "com.text.User"；
+    2.获取类Class clz = Class.forName(path);
+    3.打印System.out.println(clz.getName());//得到"com.text.User"
+    //clz.getSimpleName()是获取“User”
+获取属性
+    Field[] fields = clz.getDeclaredFields();
+    或者Field field = clz.getDeclaredFields("id");
+获取方法
+    Method[] methods = clz.getDeclaredMethods();
+    Method m1 = clz.getDeclaredMethod("getName", null);//无参函数
+	Method m2 = clz.getDeclaredMethod("setName", String.class);//有参函数，带参数的类型是为了避免重载产生的问题
+获取构造器
+    Constructor[] constuctors = clz.getDeclaredConstructors();
+	Constructor constuctor = clz.getDeclaredConstructor(int.class,int.class,String.class);
+			
+创一个使用反射的例子：
+            Class<User> clz =(Class<User>) Class.forName(path);
+			User u = clz.newInstance();//调用User的无参构造方法
+			System.out.println(u);
+
+			Constructor<User> c = clz.getDeclaredConstructor(int.class,int.class,String.class);
+			User u2 = c.newInstance(1001,18,"LYL");
+			System.out.println(u2.getName());
+            //这里使用反射的方法创建实例，调用有参构造方法
+           
+			User u3 = clz.newInstance();
+			Method method = clz.getDeclaredMethod("setName", String.class);
+			method.invoke(u3, "LYL2");	
+            /*
+            *这里使用反射的方法创建实例，调用无参构造方法。
+            *然后调用函数，通过.invoke()方法激活实例u3中的函数。
+            *这样的好处是函数名和函数参数都是变量，就可以实现动态调用。
+            *实际上，这段代码等于u3.setName("LYL2");
+            */
+            User u4 = clz.newInstance();
+			Field f = clz.getDeclaredField("name");
+			f.setAccessible(true);
+			f.set(u4, "LYL3");
+			System.out.println(u4.getName());
+            System.out.println(f.get(u4));
+            //这个也可以获得u4的name属性,就感觉我是创造了一个窗口，把窗口放在谁的
+            //身上就能通过这个窗口看到谁的属性
+            /*
+            *这段我觉得是反射最牛批的地方，直接突破限制器的极限！
+            *（private是有极限哒！我不做private啦！）
+            *通过设置f.setAccessible(true);就可以用f.set(u4, "LYL3");来对
+            *实例里的私有参数做出设置。
+            */		
