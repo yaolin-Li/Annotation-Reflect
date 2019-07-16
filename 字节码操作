@@ -23,3 +23,74 @@ public class Demo01 {
 		cc.writeFile("D:/JavaFile");
 		System.out.println("成功");
 	}
+用字节码创建类，然后用反射调用
+public class Demo02 {
+	
+	public static void test01() throws Exception {
+		ClassPool pool = ClassPool.getDefault();
+		CtClass cc = pool.get("com.lyl.test.Emp");
+		
+		byte[] bytes = cc.toBytecode();
+		System.out.println(Arrays.toString(bytes));
+		
+		System.out.println(cc.getName());
+		System.out.println(cc.getSimpleName());
+	}
+	
+	public static void test02() throws Exception{
+		ClassPool pool = ClassPool.getDefault();
+		CtClass cc = pool.get("com.lyl.test.Emp");
+		
+//		CtMethod m = CtNewMethod.make("punlic int add(int a, int b){return a+b;}",cc);直接make吧。。。下面的好麻烦
+		CtMethod m = new CtMethod(CtClass.intType, "add",
+				new CtClass[] {CtClass.intType,CtClass.intType},cc);
+		m.setModifiers(Modifier.PUBLIC);
+		m.setBody("{System.out.println(\"lyl\");return $1+$2;}");//$1-->第1一个参数，$2-->第2一个参数
+		cc.addMethod(m);
+		
+		Class clz = cc.toClass();
+		Object obj = clz.newInstance();
+		
+		Method method = clz.getDeclaredMethod("add",int.class,int.class);
+		Object result = method.invoke(obj, 200,300);
+		System.out.println(result);
+	}
+	
+	public static void test03() throws Exception {
+		ClassPool pool = ClassPool.getDefault();
+		CtClass cc = pool.get("com.lyl.test.Emp");
+		
+		CtMethod cm = cc.getDeclaredMethod("sayHello", new CtClass[] {CtClass.intType});
+		cm.insertBefore("System.out.println($1);System.out.println(\"start!\");");
+		cm.insertAt(24, "int b=3;System.out.println(b);");
+		cm.insertAfter("System.out.println(\"end!\");");
+		Class clz = cc.toClass();
+		Object obj = clz.newInstance();
+		Method method = clz.getDeclaredMethod("sayHello",int.class);
+		method.invoke(obj,300);
+	}
+	public static void test04() throws Exception{
+		ClassPool pool = ClassPool.getDefault();
+		CtClass cc = pool.get("com.lyl.test.Emp");
+		//CtField f1 = CtField.make("private int empno;",cc);
+		CtField f1 = new CtField(CtClass.intType, "salary",cc);
+		f1.setModifiers(Modifier.PRIVATE);
+		cc.addField(f1);
+		
+		cc.addMethod(CtNewMethod.getter("getSalary", f1));
+		cc.addMethod(CtNewMethod.getter("setSalary", f1));
+	}
+	public static void test05() throws Exception{
+		ClassPool pool = ClassPool.getDefault();
+		CtClass cc = pool.get("com.lyl.test.Emp");
+		
+		CtConstructor[] cs = cc.getConstructors();
+		for(CtConstructor c:cs)
+			System.out.println(c.getLongName());
+	}
+	public static void main(String[] args) throws Exception{
+		// TODO Auto-generated method stub
+		test05();
+	}
+
+}
